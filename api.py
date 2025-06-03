@@ -12,20 +12,17 @@ import shutil
 
 import sys
 import subprocess
-sys.path.append('./facefusion')  # Add facefusion to path
+sys.path.append('./facefusion') 
 
-# These imports will depend on FaceFusion's actual module structure
 try:
     from facefusion.processors.modules.face_swapper import process_frame, get_reference_faces
     from facefusion import core
-    # You may need to import other necessary modules
 except ImportError as e:
     print(f"Error importing FaceFusion modules: {e}")
     print("Make sure FaceFusion is properly installed and paths are correct")
 
 app = FastAPI(title="FaceFusion API", description="Face swapping API using FaceFusion")
 
-# Create directories for temporary files and outputs
 TEMP_DIR = Path("./temp")
 OUTPUT_DIR = Path("./output")
 TEMP_DIR.mkdir(exist_ok=True)
@@ -40,24 +37,19 @@ async def swap_faces(
     """
     Swap faces between source and target images
     """
-    # Generate unique IDs for this request
     request_id = str(uuid.uuid4())
     
     try:
-        # Create temporary and output files
         source_path = TEMP_DIR / f"{request_id}_source.jpg"
         target_path = TEMP_DIR / f"{request_id}_target.jpg"
-        output_path = OUTPUT_DIR / f"swapped_{request_id}.jpg"  # Save directly to output folder
+        output_path = OUTPUT_DIR / f"swapped_{request_id}.jpg"  
         
-        # Save uploaded files
         with open(source_path, "wb") as f:
             shutil.copyfileobj(source_image.file, f)
         
         with open(target_path, "wb") as f:
             shutil.copyfileobj(target_image.file, f)
-        
-        # Call FaceFusion face swapping logic
-        # This is a simplified example - you'll need to adapt based on actual FaceFusion API
+
         success = await process_face_swap(
             str(source_path), 
             str(target_path), 
@@ -68,10 +60,8 @@ async def swap_faces(
         if not success or not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="Face swapping failed - output file not created")
         
-        # Cleanup temporary files only (keep output file)
         cleanup_temp_files([source_path, target_path])
         
-        # Return success response with file location
         return {
             "success": True,
             "message": "Face swapping completed successfully!",
@@ -80,7 +70,6 @@ async def swap_faces(
         }
         
     except Exception as e:
-        # Cleanup on error
         cleanup_temp_files([source_path, target_path])
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
@@ -96,10 +85,9 @@ async def swap_faces_video(
     request_id = str(uuid.uuid4())
     
     try:
-        # Save files
         source_path = TEMP_DIR / f"{request_id}_source.jpg"
         target_path = TEMP_DIR / f"{request_id}_target.mp4"
-        output_path = OUTPUT_DIR / f"swapped_video_{request_id}.mp4"  # Save directly to output folder
+        output_path = OUTPUT_DIR / f"swapped_video_{request_id}.mp4"
         
         with open(source_path, "wb") as f:
             shutil.copyfileobj(source_image.file, f)
@@ -107,7 +95,6 @@ async def swap_faces_video(
         with open(target_path, "wb") as f:
             shutil.copyfileobj(target_video.file, f)
         
-        # Process video (this would be more complex)
         success = await process_video_face_swap(
             str(source_path),
             str(target_path),
@@ -136,12 +123,11 @@ async def process_face_swap(source_path: str, target_path: str, output_path: str
     try:
         print(f"Processing face swap: {source_path} -> {target_path} -> {output_path}")
         
-        # Try to find the correct FaceFusion path
         facefusion_paths = [
-            "../facefusion",  # If API is in a subdirectory
-            "./facefusion",   # If API is in same directory as facefusion
-            ".",              # If API is inside facefusion directory
-            "/home/merlotllm/Documents/facefusion"  # Absolute path based on your error
+            "../facefusion",  
+            "./facefusion",   
+            ".",              
+            "/home/merlotllm/Documents/facefusion" 
         ]
         
         facefusion_dir = None
@@ -156,7 +142,7 @@ async def process_face_swap(source_path: str, target_path: str, output_path: str
         
         print(f"Using FaceFusion directory: {facefusion_dir}")
         
-        # Build FaceFusion command with proper arguments
+        # Build FaceFusion commands
         cmd = [
             "python", "facefusion.py", 
             "headless-run",  # Run in headless mode (no GUI)
@@ -173,16 +159,14 @@ async def process_face_swap(source_path: str, target_path: str, output_path: str
         print(f"Running command: {' '.join(cmd)}")
         print(f"Working directory: {facefusion_dir}")
         
-        # Run the command asynchronously
         result = await asyncio.to_thread(
             subprocess.run, 
             cmd, 
             capture_output=True, 
             text=True,
-            cwd=facefusion_dir  # Use the detected facefusion directory
+            cwd=facefusion_dir 
         )
         
-        # Check if command was successful
         if result.returncode == 0:
             print(f"Face swap completed successfully")
             print(f"STDOUT: {result.stdout}")
@@ -204,7 +188,7 @@ async def process_video_face_swap(source_path: str, target_path: str, output_pat
     try:
         print(f"Processing video face swap: {source_path} -> {target_path} -> {output_path}")
         
-        # Build FaceFusion command for video processing
+        # Build FaceFusion commands
         cmd = [
             "python", "facefusion.py",
             "headless-run",  # Run in headless mode
@@ -221,17 +205,15 @@ async def process_video_face_swap(source_path: str, target_path: str, output_pat
         
         print(f"Running video command: {' '.join(cmd)}")
         
-        # Run the command asynchronously (video processing takes longer)
         result = await asyncio.to_thread(
             subprocess.run,
             cmd,
             capture_output=True,
             text=True,
-            cwd="../facefusion",  # Go up one level then into facefusion directory
-            timeout=3600  # 1 hour timeout for video processing
+            cwd="../facefusion",  
+            timeout=300
         )
         
-        # Check if command was successful
         if result.returncode == 0:
             print(f"Video face swap completed successfully")
             print(f"STDOUT: {result.stdout}")
@@ -254,7 +236,7 @@ def cleanup_temp_files(file_paths):
     Background task to cleanup temporary files (not output files)
     """
     async def cleanup():
-        await asyncio.sleep(1)  # Give time for processing to complete
+        await asyncio.sleep(1) 
         for path in file_paths:
             try:
                 if os.path.exists(path):
@@ -262,8 +244,7 @@ def cleanup_temp_files(file_paths):
                     print(f"Cleaned up temp file: {path}")
             except Exception as e:
                 print(f"Cleanup error: {e}")
-    
-    # Run cleanup immediately since we're not serving files anymore
+
     asyncio.create_task(cleanup())
 
 @app.get("/health")
