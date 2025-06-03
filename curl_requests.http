@@ -1,3 +1,1 @@
-curl -X POST "http://localhost:5010/whisper" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Alles Roger in Cambodia??"}'
+curl http://localhost:8000/template/insta_fake_mobile
