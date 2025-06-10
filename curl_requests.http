@@ -1,1 +1,4 @@
-curl http://localhost:8000/template/insta_fake_mobile
+curl -X POST "http://localhost:8000/faceswap" -H "Content-Type: application/json" -d '{
+  "user_id": "user456",
+  "target_face_path": "D:/Projekte/fake_news_service/temp/2ec824f8-2999-4ce4-be6c-21f0050cd4d2_target.jpg"
+}'
