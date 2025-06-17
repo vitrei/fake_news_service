@@ -1,4 +1,9 @@
-curl -X POST "http://localhost:8000/faceswap" -H "Content-Type: application/json" -d '{
+# curl -X POST "http://localhost:8000/faceswap" -H "Content-Type: application/json" -d '{
+#   "user_id": "user505",
+#   "target_face_path": "/home/merlotllm/Documents/facefusion/temp/2ec824f8-2999-4ce4-be6c-21f0050cd4d2_target.jpg"
+# }'
+
+curl -X POST "http://localhost:8000/faceswap-video" -H "Content-Type: application/json" -d '{
   "user_id": "user505",
-  "target_face_path": "/home/merlotllm/Documents/facefusion/temp/2ec824f8-2999-4ce4-be6c-21f0050cd4d2_target.jpg"
+  "target_video_path": "/home/merlotllm/Documents/facefusion/output/swapped_video_f8d39f1f-92cc-4fc6-949f-8528a31ca4d7.mp4"
 }'
