@@ -4,16 +4,15 @@ import asyncio
 import uuid
 from pathlib import Path
 
-async def facefusion_swap(source_image_path: str, target_image_path: str, quality: int = 80) -> str:
-    """
-    Calls FaceFusion face swap using robust CLI wrapper logic.
-    Ensures all paths exist and are absolute, manages output folder.
-    """
+async def facefusion_swap(source_image_path: str, target_image_path: str, quality: int = 80, user_id: str = None) -> str:
+    print(f"DEBUG: user_id value: '{user_id}', type: {type(user_id)}, bool: {bool(user_id)}")
+
     try:
-        print(f"DEBUG: Starting face swap process")
-        print(f"DEBUG: Source: {source_image_path}")
-        print(f"DEBUG: Target: {target_image_path}")
-        print(f"DEBUG: Quality: {quality}")
+        # print(f"DEBUG: Starting face swap process")
+        # print(f"DEBUG: Source: {source_image_path}")
+        # print(f"DEBUG: Target: {target_image_path}")
+        # print(f"DEBUG: Quality: {quality}")
+        print(f"DEBUG: User ID: {user_id}")
         
         # Resolve absolute paths
         abs_source_path = os.path.abspath(source_image_path)
@@ -23,13 +22,18 @@ async def facefusion_swap(source_image_path: str, target_image_path: str, qualit
         output_dir = os.path.abspath("output")
         os.makedirs(output_dir, exist_ok=True)
         
-        # Generate unique output filename
-        request_id = str(uuid.uuid4())
-        abs_output_path = os.path.join(output_dir, f"swapped_{request_id}.jpg")
+        # Generate output filename based on user_id or unique ID
+        if user_id:
+            filename = f"{user_id}.jpg"
+        else:
+            request_id = str(uuid.uuid4())
+            filename = f"swapped_{request_id}.jpg"
         
-        print(f"DEBUG: Absolute source path: {abs_source_path}")
-        print(f"DEBUG: Absolute target path: {abs_target_path}")
-        print(f"DEBUG: Absolute output path: {abs_output_path}")
+        abs_output_path = os.path.join(output_dir, filename)
+        
+        # print(f"DEBUG: Absolute source path: {abs_source_path}")
+        # print(f"DEBUG: Absolute target path: {abs_target_path}")
+        # print(f"DEBUG: Absolute output path: {abs_output_path}")
         
         # Validate input files
         if not os.path.exists(abs_source_path):
@@ -75,6 +79,11 @@ async def facefusion_swap(source_image_path: str, target_image_path: str, qualit
         
         print(f"DEBUG: Using FaceFusion directory: {facefusion_dir}")
         
+        # Detect available execution providers
+        # available_providers = await detect_execution_providers(facefusion_dir)
+        # execution_provider = "cuda" if "cuda" in available_providers else "cpu"
+        
+        
         # Build FaceFusion command
         cmd = [
             "python", "facefusion.py",
@@ -86,7 +95,7 @@ async def facefusion_swap(source_image_path: str, target_image_path: str, qualit
             "--face-swapper-model", "inswapper_128_fp16",
             "--face-swapper-pixel-boost", "256x256",
             "--output-image-quality", str(quality),
-            "--execution-providers", "cuda",  # Change to "cpu" if no GPU
+            "--execution-providers", "cuda",
         ]
         
         print(f"DEBUG: Running command: {' '.join(cmd)}")
@@ -136,88 +145,89 @@ async def facefusion_swap(source_image_path: str, target_image_path: str, qualit
         raise
 
 
-def facefusion_swap_sync(source_image_path: str, target_image_path: str, quality: int = 80) -> str:
-    """
-    Synchronous version of facefusion_swap for backward compatibility
-    """
-    try:
-        # Resolve absolute paths
-        abs_source_path = os.path.abspath(source_image_path)
-        abs_target_path = os.path.abspath(target_image_path)
+
+# def facefusion_swap_sync(source_image_path: str, target_image_path: str, quality: int = 80) -> str:
+#     """
+#     Synchronous version of facefusion_swap for backward compatibility
+#     """
+#     try:
+#         # Resolve absolute paths
+#         abs_source_path = os.path.abspath(source_image_path)
+#         abs_target_path = os.path.abspath(target_image_path)
         
-        # Create output directory
-        output_dir = os.path.abspath("output")
-        os.makedirs(output_dir, exist_ok=True)
+#         # Create output directory
+#         output_dir = os.path.abspath("output")
+#         os.makedirs(output_dir, exist_ok=True)
         
-        # Generate unique output filename
-        request_id = str(uuid.uuid4())
-        abs_output_path = os.path.join(output_dir, f"swapped_{request_id}.jpg")
+#         # Generate unique output filename
+#         request_id = str(uuid.uuid4())
+#         abs_output_path = os.path.join(output_dir, f"swapped_{request_id}.jpg")
         
-        # Validate input files
-        if not os.path.exists(abs_source_path):
-            raise FileNotFoundError(f"Source image not found: {abs_source_path}")
-        if not os.path.exists(abs_target_path):
-            raise FileNotFoundError(f"Target image not found: {abs_target_path}")
+#         # Validate input files
+#         if not os.path.exists(abs_source_path):
+#             raise FileNotFoundError(f"Source image not found: {abs_source_path}")
+#         if not os.path.exists(abs_target_path):
+#             raise FileNotFoundError(f"Target image not found: {abs_target_path}")
         
-        # Possible locations of facefusion.py
-        facefusion_paths = [
-            "../facefusion",
-            "./facefusion", 
-            ".",
-            "/home/merlotllm/Documents/facefusion",
-            "../fake_news_service",
-            "./fake_news_service",
-            "/home/merlotllm/Documents/fake_news_service"
-        ]
+#         # Possible locations of facefusion.py
+#         facefusion_paths = [
+#             "../facefusion",
+#             "./facefusion", 
+#             ".",
+#             "/home/merlotllm/Documents/facefusion",
+#             "../fake_news_service",
+#             "./fake_news_service",
+#             "/home/merlotllm/Documents/fake_news_service"
+#         ]
         
-        facefusion_dir = None
-        for path in facefusion_paths:
-            full_path = os.path.abspath(path)
-            if os.path.exists(os.path.join(full_path, "facefusion.py")):
-                facefusion_dir = full_path
-                break
+#         facefusion_dir = None
+#         for path in facefusion_paths:
+#             full_path = os.path.abspath(path)
+#             if os.path.exists(os.path.join(full_path, "facefusion.py")):
+#                 facefusion_dir = full_path
+#                 break
         
-        if not facefusion_dir:
-            raise RuntimeError("Could not find facefusion.py in any expected location")
+#         if not facefusion_dir:
+#             raise RuntimeError("Could not find facefusion.py in any expected location")
         
-        # Build FaceFusion command
-        cmd = [
-            "python", "facefusion.py",
-            "headless-run",
-            "--source-paths", abs_source_path,
-            "--target-path", abs_target_path,
-            "--output-path", abs_output_path,
-            "--processors", "face_swapper",
-            "--face-swapper-model", "inswapper_128_fp16",
-            "--face-swapper-pixel-boost", "256x256",
-            "--output-image-quality", str(quality),
-            "--execution-providers", "cuda",  # or "cpu" if no GPU
-        ]
+#         # Build FaceFusion command
+#         cmd = [
+#             "python", "facefusion.py",
+#             "headless-run",
+#             "--source-paths", abs_source_path,
+#             "--target-path", abs_target_path,
+#             "--output-path", abs_output_path,
+#             "--processors", "face_swapper",
+#             "--face-swapper-model", "inswapper_128_fp16",
+#             "--face-swapper-pixel-boost", "256x256",
+#             "--output-image-quality", str(quality),
+#             "--execution-providers", "cuda",  # or "cpu" if no GPU
+#         ]
         
-        # Run command synchronously with timeout
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=facefusion_dir,
-                capture_output=True,
-                text=True,
-                timeout=300
-            )
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("FaceFusion process timed out")
+#         # Run command synchronously with timeout
+#         try:
+#             result = subprocess.run(
+#                 cmd,
+#                 cwd=facefusion_dir,
+#                 capture_output=True,
+#                 text=True,
+#                 timeout=300
+#             )
+#         except subprocess.TimeoutExpired:
+#             raise RuntimeError("FaceFusion process timed out")
         
-        # Debug output (optional)
-        print(f"FaceFusion stdout:\n{result.stdout}")
-        print(f"FaceFusion stderr:\n{result.stderr}")
+#         # Debug output (optional)
+#         print(f"FaceFusion stdout:\n{result.stdout}")
+#         print(f"FaceFusion stderr:\n{result.stderr}")
         
-        if result.returncode != 0:
-            raise RuntimeError(f"FaceFusion failed with exit code {result.returncode}: {result.stderr}")
+#         if result.returncode != 0:
+#             raise RuntimeError(f"FaceFusion failed with exit code {result.returncode}: {result.stderr}")
         
-        if not os.path.exists(abs_output_path):
-            raise RuntimeError("FaceFusion output file not created")
+#         if not os.path.exists(abs_output_path):
+#             raise RuntimeError("FaceFusion output file not created")
         
-        return abs_output_path
+#         return abs_output_path
         
-    except Exception as e:
-        print(f"ERROR in facefusion_swap_sync: {str(e)}")
-        raise
+#     except Exception as e:
+#         print(f"ERROR in facefusion_swap_sync: {str(e)}")
+#         raise

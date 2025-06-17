@@ -61,11 +61,11 @@ async def faceswap_api(request: FaceSwapRequest):
     Face swap using user's profile image and provided target image path
     """
     try:
-        # Call Service A to get user profile
         async with httpx.AsyncClient() as client:
             url = f"{user_profile_builder_service}/users/{request.user_id}"
             response = await client.get(url)
             
+            print(request.user_id)
             if response.status_code == 404:
                 raise HTTPException(status_code=404, detail=f"User {request.user_id} not found")
             
@@ -76,8 +76,13 @@ async def faceswap_api(request: FaceSwapRequest):
             if not source_image_path:
                 raise HTTPException(status_code=404, detail="User profile missing 'image_path'")
             
-            # Use the improved facefusion_swap function
-            swapped_image_path = await facefusion_swap(source_image_path, request.target_face_path)
+            print(f"API DEBUG: About to call with user_id='{request.user_id}', type={type(request.user_id)}, repr={repr(request.user_id)}")
+            swapped_image_path = await facefusion_swap(
+                source_image_path, 
+                request.target_face_path, 
+                quality=80,
+                user_id=request.user_id
+            )
             
             return {
                 "success": True,
@@ -144,11 +149,12 @@ async def swap_faces(
         print(f"DEBUG: Source file size: {os.path.getsize(source_path)} bytes")
         print(f"DEBUG: Target file size: {os.path.getsize(target_path)} bytes")
         
-        # Process face swap using the improved function
+        # Process face swap using the improved function with user_id
         output_path = await facefusion_swap(
             str(source_path),
             str(target_path),
-            quality=output_quality
+            quality=output_quality,
+            user_id=user_id
         )
         
         # Clean up temporary files
