@@ -164,7 +164,7 @@ async def facefusion_video_swap(source_image_path: str, target_video_path: str, 
         
         # Generate output filename based on user_id or unique ID
         if user_id:
-            filename = f"{user_id}_video.mp4"
+            filename = f"{user_id}.mp4"
         else:
             request_id = str(uuid.uuid4())
             filename = f"swapped_video_{request_id}.mp4"

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from data_models.requests import FaceSwapRequest, FaceSwapVideoRequest
 from fastapi.middleware.cors import CORSMiddleware
 from utils import facefusion_swap, facefusion_video_swap
@@ -51,6 +51,8 @@ def get_user_profile(user_id: str):
     except Exception as e:
         print(f"ERROR: Could not fetch user profile: {e}")
         return None
+
+### Faceswap logic
 
 @app.post("/faceswap")
 async def faceswap_api(request: FaceSwapRequest):
@@ -142,6 +144,49 @@ async def faceswap_video_api(request: FaceSwapVideoRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Video face swap failed: {str(e)}")
 
+### Get fake news data
+
+@app.get("/check-file/{user_id}")
+def check_file_exists(user_id: str):
+    """
+    Check if either a JPG or MP4 file exists for the given user ID.
+    """
+    jpg_path = os.path.join(OUTPUT_DIR, f"{user_id}.jpg")
+    mp4_path = os.path.join(OUTPUT_DIR, f"{user_id}.mp4")
+
+    return {
+        "jpg_exists": os.path.isfile(jpg_path),
+        "mp4_exists": os.path.isfile(mp4_path)
+    }
+
+@app.get("/get-file/{user_id}/{file_type}")
+def get_file(user_id: str, file_type: str):
+    if file_type not in ("jpg", "mp4"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Use 'jpg' or 'mp4'.")
+
+    file_path = os.path.join(OUTPUT_DIR, f"{user_id}.{file_type}")
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="File not found.")
+
+    media_type = "image/jpeg" if file_type == "jpg" else "mp4"
+    return FileResponse(path=file_path, media_type=media_type, filename=f"{user_id}.{file_type}")
+
+@app.get("/template/{template_name}", response_class=HTMLResponse)
+async def serve_template(template_name: str):
+    if not template_name.endswith(".html"):
+        template_name += ".html"
+
+    template_path = os.path.join("template", template_name)
+
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            html = f.read()
+            return HTMLResponse(content=html)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Template '{template_name}' does not exist")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
@@ -150,6 +195,8 @@ async def download_file(filename: str):
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
+
+
 
 @app.get("/")
 async def root():
