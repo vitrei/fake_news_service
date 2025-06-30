@@ -3,8 +3,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 from data_models.requests import FaceSwapRequest, FaceSwapVideoRequest
 from fastapi.middleware.cors import CORSMiddleware
 from utils import facefusion_swap, facefusion_video_swap
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-
 
 import httpx
 import os
@@ -14,6 +14,8 @@ import uuid
 app = FastAPI(title="FaceFusion API", description="Face swapping API using FaceFusion")
 
 user_profile_builder_service = "http://localhost:8010"
+
+app.mount("/output", StaticFiles(directory="output"), name="output")
 
 # Create directories
 TEMP_DIR = Path("temp")
@@ -197,6 +199,16 @@ async def download_file(filename: str):
     return FileResponse(file_path)
 
 
+@app.get("/instagram_mobile/{user_id}")
+async def serve_instagram_template(user_id: str):
+    template_path = os.path.join("template", "insta_template_mobile.html")
+    return FileResponse(template_path)
+
+
+@app.get("/instagram_tablet/{user_id}")
+async def serve_instagram_template(user_id: str):
+    template_path = os.path.join("template", "insta_template_tablet.html")
+    return FileResponse(template_path)
 
 @app.get("/")
 async def root():

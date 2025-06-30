@@ -1,16 +1,16 @@
 # curl -X POST "http://localhost:8000/faceswap" -H "Content-Type: application/json" -d '{
-#   "user_id": "test_2001",
+#   "user_id": "8GpWvTiFQNBQWpsVMZVTUb",
 #   "target_face_path": "/home/merlotllm/Documents/facefusion/temp/b8ce6513-2ffd-4823-8bc5-3058abc656cb_source.jpg"
 # }'
 
-# curl -X POST "http://localhost:8000/faceswap-video" -H "Content-Type: application/json" -d '{
-#   "user_id": "test_2001",
-#   "target_video_path": "/home/merlotllm/Documents/facefusion/output/swapped_video_f8d39f1f-92cc-4fc6-949f-8528a31ca4d7.mp4"
-# }'
+curl -X POST "http://localhost:8000/faceswap-video" -H "Content-Type: application/json" -d '{
+  "user_id": "test_2001",
+  "target_video_path": "/home/merlotllm/Documents/facefusion/output/swapped_video_f8d39f1f-92cc-4fc6-949f-8528a31ca4d7.mp4"
+}'
 
-# GET http://localhost:8000/check-file/test_2001
+GET http://localhost:8000/check-file/8GpWvTiFQNBQWpsVMZVTUb
 
-GET http://localhost:8000/get-file/test_2001/mp4
+# GET http://localhost:8000/get-file/3004/mp4
 
 # GET http://localhost:8000/template/insta_fake_mobile.html
 
