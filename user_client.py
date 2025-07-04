@@ -1,7 +1,7 @@
 import requests
 from typing import Optional, Dict, Any
 
-def get_user_profile(user_id: str) -> Optional[Dict[str, Any]]:
+def get_user_profile(user_id: str|int) -> Optional[Dict[str, Any]]:
     """Get user profile from user_profile_builder service (port 8010)"""
     try:
         url = f"http://localhost:8010/users/{user_id}"

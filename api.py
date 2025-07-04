@@ -149,7 +149,7 @@ async def faceswap_video_api(request: FaceSwapVideoRequest):
 ### Get fake news data
 
 @app.get("/check-file/{user_id}")
-def check_file_exists(user_id: str):
+def check_file_exists(user_id: str|int):
     """
     Check if either a JPG or MP4 file exists for the given user ID.
     """
@@ -162,7 +162,7 @@ def check_file_exists(user_id: str):
     }
 
 @app.get("/get-file/{user_id}/{file_type}")
-def get_file(user_id: str, file_type: str):
+def get_file(user_id: str|int, file_type: str):
     if file_type not in ("jpg", "mp4"):
         raise HTTPException(status_code=400, detail="Invalid file type. Use 'jpg' or 'mp4'.")
 
@@ -200,13 +200,13 @@ async def download_file(filename: str):
 
 
 @app.get("/instagram_mobile/{user_id}")
-async def serve_instagram_template(user_id: str):
+async def serve_instagram_template(user_id: str|int):
     template_path = os.path.join("template", "insta_template_mobile.html")
     return FileResponse(template_path)
 
 
 @app.get("/instagram_tablet/{user_id}")
-async def serve_instagram_template(user_id: str):
+async def serve_instagram_template(user_id: str|int):
     template_path = os.path.join("template", "insta_template_tablet.html")
     return FileResponse(template_path)
 
